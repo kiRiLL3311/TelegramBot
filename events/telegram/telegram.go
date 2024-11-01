@@ -120,18 +120,51 @@ func (p *Processor) Process(event events.Event) error {
 	}
 }
 
-// func (p *Processor) processMessage(event events.Event) error {
-// 	meta, err := meta(event)
-// 	if err != nil {
-// 		return e.Wrap("cant process message", err)
-// 	}
+func (p *Processor) index(event events.Event, meta Meta) error {
+	// Handle remove index
+	index, err := strconv.Atoi(strings.TrimSpace(event.Text))
+	if err != nil {
+		p.tg.SendMessage(meta.ChatID, msgWrongInput)
+		return nil
+	}
 
-// 	if err := p.doCmd(event.Text, meta.ChatID, meta.Username); err != nil {
-// 		return e.Wrap("cant process message", err)
-// 	}
+	pages, err := p.storage.ListPrepared(meta.Username)
+	if err != nil {
+		if errors.Is(err, storage.ErrNoSavedPages) {
+			p.tg.SendMessage(meta.ChatID, msgNoSavedPages)
+			p.mu.Lock()
+			delete(p.states, meta.ChatID)
+			p.mu.Unlock()
+			return nil
+		}
+		return err
+	}
 
-// 	return nil
-// }
+	if index < 1 || index > len(*pages) {
+		p.tg.SendMessage(meta.ChatID, msgWrongInput)
+		return nil
+	}
+
+	page := (*pages)[index-1]
+	element := &storage.Page{
+		URL:      page.URL,
+		Username: meta.Username,
+	}
+
+	if err := p.storage.Remove(element); err != nil {
+		return err
+	}
+
+	if err := p.tg.SendMessage(meta.ChatID, msgRemoved); err != nil {
+		return err
+	}
+
+	p.mu.Lock()
+	delete(p.states, meta.ChatID)
+	p.mu.Unlock()
+
+	return nil
+}
 
 func (p *Processor) processMessage(event events.Event) error {
 	meta, err := meta(event)
@@ -144,49 +177,7 @@ func (p *Processor) processMessage(event events.Event) error {
 	p.mu.Unlock()
 
 	if exists && state == stateAwaitingRemoveIndex {
-		// Handle remove index
-		index, err := strconv.Atoi(strings.TrimSpace(event.Text))
-		if err != nil {
-			p.tg.SendMessage(meta.ChatID, msgWrongInput)
-			return nil
-		}
-
-		pages, err := p.storage.ListPrepared(meta.Username)
-		if err != nil {
-			if errors.Is(err, storage.ErrNoSavedPages) {
-				p.tg.SendMessage(meta.ChatID, msgNoSavedPages)
-				p.mu.Lock()
-				delete(p.states, meta.ChatID)
-				p.mu.Unlock()
-				return nil
-			}
-			return err
-		}
-
-		if index < 1 || index > len(*pages) {
-			p.tg.SendMessage(meta.ChatID, msgWrongInput)
-			return nil
-		}
-
-		page := (*pages)[index-1]
-		element := &storage.Page{
-			URL:      page.URL,
-			Username: meta.Username,
-		}
-
-		if err := p.storage.Remove(element); err != nil {
-			return err
-		}
-
-		if err := p.tg.SendMessage(meta.ChatID, msgRemoved); err != nil {
-			return err
-		}
-
-		p.mu.Lock()
-		delete(p.states, meta.ChatID)
-		p.mu.Unlock()
-
-		return nil
+		return p.index(event, meta)
 	}
 
 	if err := p.doCmd(event.Text, meta.ChatID, meta.Username); err != nil {

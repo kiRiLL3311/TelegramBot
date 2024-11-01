@@ -123,8 +123,10 @@ func (p *Processor) sendRandom(chatID int, username string) (err error) {
 	if err := p.tg.SendMessage(chatID, page.URL); err != nil {
 		return err
 	}
+	//optional
+	//return p.storage.Remove(page)
 
-	return p.storage.Remove(page)
+	return nil
 }
 func formatPages(pages *[]storage.Page) string {
 	var result strings.Builder
