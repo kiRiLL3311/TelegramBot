@@ -20,10 +20,10 @@ func New(fetcher events.Fetcher, processor events.Processor, batchSize int) Cons
 		batchSize: batchSize,
 	}
 }
-func (c *Consumer) handleEvents(xyesos []events.Event) error {
+func (c *Consumer) handleEvents(evts []events.Event) error {
 	var wg sync.WaitGroup
-
-	for _, event := range xyesos {
+	// concurent processing
+	for _, event := range evts {
 		wg.Add(1)
 
 		go func(e events.Event) {
@@ -62,5 +62,3 @@ func (c Consumer) Start() error {
 		}
 	}
 }
-
-// handleEvents processes a slice of events using the processor

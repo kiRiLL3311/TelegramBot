@@ -5,8 +5,6 @@ import (
 	"log"
 	tgClient "test/Clients/telegram"
 	eventconsumer "test/consumer/event-consumer"
-
-	//"test/events"
 	"test/events/telegram"
 	"test/storage/files"
 )
@@ -33,8 +31,6 @@ func main() {
 }
 
 func mustToken() string {
-	//flag.Parse()
-
 	token := flag.String(
 		"tg-bot-token",
 		"",

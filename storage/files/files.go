@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	e "test/lib"
 	"test/storage"
-	"time"
 )
 
 type Storage struct {
@@ -68,7 +67,6 @@ func (s Storage) PickRandom(userName string) (page *storage.Page, err error) {
 		return nil, storage.ErrNoSavedPages
 	}
 
-	rand.Seed(time.Now().UnixNano())
 	n := rand.Intn(len(files))
 
 	file := files[n]
@@ -84,7 +82,7 @@ func (s Storage) ListPrepared(userName string) (*[]storage.Page, error) {
 		return nil, err
 	}
 
-	if len(files) == 0 { 
+	if len(files) == 0 {
 		return nil, storage.ErrNoSavedPages
 	}
 
@@ -125,7 +123,6 @@ func (s Storage) IsExists(p *storage.Page) (bool, error) {
 
 	path := filepath.Join(s.basePath, p.Username, fileName)
 
-	//os.Stat(path)
 	switch _, err = os.Stat(path); {
 	case errors.Is(err, os.ErrNotExist):
 		return false, nil

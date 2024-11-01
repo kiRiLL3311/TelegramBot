@@ -8,8 +8,6 @@ import (
 	e "test/lib"
 )
 
-// var ErrNoSavedPages = errors.New("no saved pages")
-
 type Storage interface {
 	Save(p *Page) error
 	PickRandom(username string) (*Page, error)

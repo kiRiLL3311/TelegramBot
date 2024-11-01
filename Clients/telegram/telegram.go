@@ -3,8 +3,6 @@ package telegram
 import (
 	"encoding/json"
 	"io"
-
-	//"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -45,7 +43,7 @@ func (c *Client) Updates(offset int, limit int) (updates []Update, err error) {
 
 	q := url.Values{}
 	q.Add("offset", strconv.Itoa(offset))
-	q.Add("limit", strconv.Itoa(offset))
+	q.Add("limit", strconv.Itoa(limit))
 
 	data, err := c.doRequest(getUpdatesMethod, q)
 	if err != nil {

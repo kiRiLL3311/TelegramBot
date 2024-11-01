@@ -130,8 +130,9 @@ func (p *Processor) Process(event events.Event) error {
 // 		return e.Wrap("cant process message", err)
 // 	}
 
-//		return nil
-//	}
+// 	return nil
+// }
+
 func (p *Processor) processMessage(event events.Event) error {
 	meta, err := meta(event)
 	if err != nil {
@@ -188,13 +189,11 @@ func (p *Processor) processMessage(event events.Event) error {
 		return nil
 	}
 
-	// If no state, handle as command
-	if strings.HasPrefix(event.Text, "/") {
-		return p.doCmd(event.Text, meta.ChatID, meta.Username)
+	if err := p.doCmd(event.Text, meta.ChatID, meta.Username); err != nil {
+		return e.Wrap("cant process message", err)
 	}
 
-	// Otherwise, prompt user to enter a valid command
-	return p.tg.SendMessage(meta.ChatID, "Please enter a valid command. Use /help for assistance.")
+	return nil
 }
 
 func meta(event events.Event) (Meta, error) {

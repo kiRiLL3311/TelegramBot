@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-
 	e "test/lib"
 	"test/storage"
 )
@@ -20,8 +19,6 @@ const (
 	RemCmd   = "/remove"
 )
 
-// var links = map[int][]string{} // Словарь для хранения ссылок по chat_id
-// api роутера
 func (p *Processor) doCmd(text string, chatID int, username string) error {
 	text = strings.TrimSpace(text)
 
@@ -36,7 +33,6 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 		return p.sendRandom(chatID, username)
 	case RemCmd:
 		return p.sendRemove(username, chatID)
-
 	case HelpCmd:
 		return p.sendHelp(chatID)
 	case StartCmd:
@@ -52,7 +48,6 @@ func (p *Processor) doCmd(text string, chatID int, username string) error {
 func (p *Processor) savePage(chatID int, pageURL string, username string) (err error) {
 	defer func() { err = e.WrapIfErr("cant do command: save page", err) }()
 
-	// Check if p.storage or p.tg is nil
 	if p.storage == nil {
 		return fmt.Errorf("storage is not initialized")
 	}
@@ -88,53 +83,6 @@ func (p *Processor) savePage(chatID int, pageURL string, username string) (err e
 	return nil
 }
 
-// func (p *Processor) ReadInput(chatID int) (int, error) {
-// 	var userInput int
-// 	//fmt.Print("Введите число: ")
-// 	p.tg.SendMessage(chatID, msgInsertNumber)
-// 	_, err := fmt.Scanln(&userInput)
-// 	if err != nil {
-// 		p.tg.SendMessage(chatID, msgWrongInput)
-// 	}
-// 	attempts := 0
-// 	for err != nil && attempts < off {
-// 		_, err = fmt.Scanln(&userInput)
-// 		attempts++
-// 	}
-
-// 	if attempts == off {
-// 		return 0, err
-// 	}
-// 	return userInput, nil
-// }
-
-// func (p *Processor) sendRemove(username string, chatID int) error {
-
-// 	pages, err := p.storage.ListPrepared(username)
-// 	if err != nil && !errors.Is(err, storage.ErrNoSavedPages) {
-// 		return err
-// 	}
-// 	if errors.Is(err, storage.ErrNoSavedPages) {
-// 		return p.tg.SendMessage(chatID, msgNoSavedPages)
-// 	}
-
-//		if err != nil {
-//			return err
-//		}
-//		index, _ := p.ReadInput(chatID)
-//		page := (*pages)[index-1]
-//		element := &storage.Page{
-//			URL:      page.URL,
-//			Username: username,
-//		}
-//		if err := p.storage.Remove(element); err != nil {
-//			return err
-//		}
-//		if err := p.tg.SendMessage(chatID, msgRemoved); err != nil {
-//			return err
-//		}
-//		return nil
-//	}
 func (p *Processor) sendRemove(username string, chatID int) error {
 	pages, err := p.storage.ListPrepared(username)
 	if err != nil {
@@ -148,6 +96,9 @@ func (p *Processor) sendRemove(username string, chatID int) error {
 
 	if err := p.tg.SendMessage(chatID, message); err != nil {
 		return err
+	}
+	if errors.Is(err, storage.ErrNoSavedPages) {
+		return p.tg.SendMessage(chatID, msgNoSavedPages)
 	}
 
 	// Set the user's state to await index input
@@ -199,7 +150,7 @@ func (p *Processor) sendList(chatID int, username string) error {
 
 	message := formatPages(pages)
 
-	// Отправляем сообщение с ссылками
+	// Sending list of links
 	if err := p.tg.SendMessage(chatID, message); err != nil {
 		return err
 	}
