@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"context"
 	"errors"
 	"log"
 	"strconv"
@@ -128,7 +129,7 @@ func (p *Processor) index(event events.Event, meta Meta) error {
 		return nil
 	}
 
-	pages, err := p.storage.ListPrepared(meta.Username)
+	pages, err := p.storage.ListPrepared(context.Background(), meta.Username)
 	if err != nil {
 		if errors.Is(err, storage.ErrNoSavedPages) {
 			p.tg.SendMessage(meta.ChatID, msgNoSavedPages)
@@ -151,7 +152,7 @@ func (p *Processor) index(event events.Event, meta Meta) error {
 		Username: meta.Username,
 	}
 
-	if err := p.storage.Remove(element); err != nil {
+	if err := p.storage.Remove(context.Background(), element); err != nil {
 		return err
 	}
 
